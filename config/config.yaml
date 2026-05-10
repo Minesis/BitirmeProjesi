@@ -1,0 +1,81 @@
+# ============================================================
+#  Retail Analytics System - Configuration
+# ============================================================
+
+# --- Cameras (Multi-Camera Shelf Analytics) ---
+# Each camera represents exactly one shelf/zone.
+cameras:
+  - id: "cam_1"
+    shelf_name: "Snacks"
+    source: 0
+
+  # RTSP example:
+  # - id: "cam_2"
+  #   shelf_name: "Drinks"
+  #   source: "rtsp://camera_url"
+
+  # Video file example:
+  # - id: "cam_3"
+  #   shelf_name: "Electronics"
+  #   source: "data/video.mp4"
+
+# --- Capture defaults (applied to each camera unless overridden) ---
+capture:
+  width: 1280
+  height: 720
+  fps: 30
+  # Setting capture resolution may hang on some Windows webcam drivers.
+  # If false, the pipeline resizes frames to the configured width/height.
+  set_capture_resolution: false
+  reconnect_backoff_seconds: 5.0
+  failure_sleep_seconds: 1.0
+
+# --- Detection ---
+detection:
+  model: "yolov8n.pt"          # nano for speed; swap to yolov8s.pt for accuracy
+  confidence: 0.45
+  iou_threshold: 0.45
+  device: "cpu"                # "cuda" if GPU available
+
+# --- Tracking (Deep SORT) ---
+tracking:
+  max_age: 30                  # frames before track is deleted
+  n_init: 3                    # confirmations before track is active
+  max_cosine_distance: 0.4
+  nn_budget: 100
+
+# --- Age/Gender Model ---
+age_gender:
+  model_path: "models/age_gender_model.pth"
+  input_size: 96
+  device: "cpu"
+  infer_interval: 15
+  lock_threshold: 0.85
+  min_votes: 5
+  vote_min_conf: 0.60
+  min_face_size: 28
+  face_detector: "haar"         # "haar" | "none"
+  face_margin: 0.15             # extra margin around detected face crop
+  # Age group bins (used for training + UI labels). If you change these, retrain the model.
+  age_bins: [13, 18, 25, 35, 45, 55, 65, 75, 85]
+  age_labels: ["0-12", "13-17", "18-24", "25-34", "35-44", "45-54", "55-64", "65-74", "75-84", "85+"]
+
+# --- Database ---
+database:
+  path: "data/analytics.db"
+
+# --- API ---
+api:
+  host: "0.0.0.0"
+  port: 8000
+
+# --- Dashboard ---
+dashboard:
+  api_url: "http://localhost:8000"
+  refresh_interval: 5          # seconds
+
+# --- Logging ---
+logging:
+  level: "INFO"
+  log_file: "logs/retail_analytics.log"
+  rotation: "10 MB"
